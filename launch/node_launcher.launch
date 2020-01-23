@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="path_planing" type="path_planing_wayfront.py" name="path_planing" output="screen"></node>
+</launch>

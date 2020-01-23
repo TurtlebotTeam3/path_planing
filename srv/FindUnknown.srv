@@ -1,0 +1,7 @@
+int32 blowUpCellNum
+int32 xStart
+int32 yStart
+int32 radius
+---
+FullPath waypoints
+FullPath allPoints
