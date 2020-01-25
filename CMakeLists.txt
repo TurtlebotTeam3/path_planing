@@ -59,6 +59,7 @@ add_service_files(
    FILES
    FindPathToGoal.srv 
    FindUnknown.srv
+   FindUnseen.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -104,7 +105,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+  #INCLUDE_DIRS include
   LIBRARIES path_planing
   CATKIN_DEPENDS rospy
   DEPENDS system_lib
