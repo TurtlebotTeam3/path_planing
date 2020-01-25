@@ -130,13 +130,13 @@ class PathPlanningWayfront:
                         # currentValue = currentValue - 1
                         # map[currentY][currentX] = currentValue
 
-                  #direction_changed, direction = self._detect_direction_change(direction, currentX, currentY, lastX, lastY)
-                  if direction != lastDirection:
-                        lastDirection = direction
-                        waypoints.append((lastX, lastY))
-                  allpoints.append((currentX, currentY))
+                        #direction_changed, direction = self._detect_direction_change(direction, currentX, currentY, lastX, lastY)
+                        if direction != lastDirection:
+                              lastDirection = direction
+                              waypoints.append((lastX, lastY))
+                        allpoints.append((currentX, currentY))
 
-                  elif (nextLowestAdjeacent[2]) == self._value_goal:
+                  elif nextLowestAdjeacent[2] == self._value_goal:
                         waypoints.append((currentX, currentY))
                         run = False
             return map, waypoints, allpoints
@@ -321,24 +321,24 @@ class PathPlanningWayfront:
 
             for row in range(robot_radius, num_rows - robot_radius):
                   for col in range(robot_radius, num_cols - robot_radius):
-                  if map[row][col] == 0:
-                        addGoal = False
-                        surrounding_any_wall = map[row - robot_radius: row + robot_radius + 1, col - robot_radius: col + robot_radius + 1] == self._value_wall
-                        if map[row - 1][col] == -1 and not any(np.any(surrounding_any_wall, axis=0)) and not any(np.any(surrounding_any_wall, axis=1)):
-                              map[row][col] = self._value_goal
-                              addGoal = True
-                        if map[row + 1][col] == -1 and not any(np.any(surrounding_any_wall, axis=0)) and not any(np.any(surrounding_any_wall, axis=1)):
-                              map[row][col] = self._value_goal
-                              addGoal = True
-                        if map[row][col - 1] == -1 and not any(np.any(surrounding_any_wall, axis=0)) and not any(np.any(surrounding_any_wall, axis=1)):
-                              map[row][col] = self._value_goal
-                              addGoal = True
-                        if map[row][col + 1] == -1 and not any(np.any(surrounding_any_wall, axis=0)) and not any(np.any(surrounding_any_wall, axis=1)):
-                              map[row][col] = self._value_goal
-                              addGoal = True
+                        if map[row][col] == 0:
+                              addGoal = False
+                              surrounding_any_wall = map[row - robot_radius: row + robot_radius + 1, col - robot_radius: col + robot_radius + 1] == self._value_wall
+                              if map[row - 1][col] == -1 and not any(np.any(surrounding_any_wall, axis=0)) and not any(np.any(surrounding_any_wall, axis=1)):
+                                    map[row][col] = self._value_goal
+                                    addGoal = True
+                              if map[row + 1][col] == -1 and not any(np.any(surrounding_any_wall, axis=0)) and not any(np.any(surrounding_any_wall, axis=1)):
+                                    map[row][col] = self._value_goal
+                                    addGoal = True
+                              if map[row][col - 1] == -1 and not any(np.any(surrounding_any_wall, axis=0)) and not any(np.any(surrounding_any_wall, axis=1)):
+                                    map[row][col] = self._value_goal
+                                    addGoal = True
+                              if map[row][col + 1] == -1 and not any(np.any(surrounding_any_wall, axis=0)) and not any(np.any(surrounding_any_wall, axis=1)):
+                                    map[row][col] = self._value_goal
+                                    addGoal = True
 
-                        if addGoal:
-                              list_unknown_spots.append((col, row))
+                              if addGoal:
+                                    list_unknown_spots.append((col, row))
 
             return map, list_unknown_spots
 
@@ -363,23 +363,23 @@ class PathPlanningWayfront:
             # Free up robot right if no wall in org map
             if robot_x + robot_radius <  len(tmp_map[0]) and map[robot_y, robot_x + robot_radius] != 100:
                   for y in range(robot_y - robot_radius, robot_y + 1 + robot_radius):
-                  for x in range(robot_x, robot_x + robot_radius + 1):
-                        if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
-                              tmp_map[y, x] = map[y, x]
+                        for x in range(robot_x, robot_x + robot_radius + 1):
+                              if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
+                                    tmp_map[y, x] = map[y, x]
 
             # Free up robot bottom if no wall in org map
             if robot_y + robot_radius < len(tmp_map) and  map[robot_y + robot_radius, robot_x] != 100:
                   for y in range(robot_y - robot_radius, robot_y + 1):
-                  for x in range(robot_x - robot_radius, robot_x + robot_radius + 1):
-                        if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
-                              tmp_map[y, x] = map[y, x]
+                        for x in range(robot_x - robot_radius, robot_x + robot_radius + 1):
+                              if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
+                                    tmp_map[y, x] = map[y, x]
 
             # Free up robot left if no wall in org map
             if robot_x - robot_radius >= 0 and map[robot_y, robot_x - robot_radius] != 100:
                   for y in range(robot_y - robot_radius, robot_y + 1 + robot_radius):
-                  for x in range(robot_x - robot_radius, robot_x + 1):
-                        if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
-                              tmp_map[y, x] = map[y, x]
+                        for x in range(robot_x - robot_radius, robot_x + 1):
+                              if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
+                                    tmp_map[y, x] = map[y, x]
       
             return tmp_map
 
