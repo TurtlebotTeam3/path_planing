@@ -35,7 +35,7 @@ class PathPlanningWayfront:
             self.mapSub = rospy.Subscriber('/map', OccupancyGrid, self._map_callback)
             self.mapSeenSub = rospy.Subscriber('/camera_seen_map', OccupancyGrid, self._map_seen_callback)
             self.find_unkown_service = rospy.Service('find_unkown_service', FindUnknown, self.find_unknown_callback)
-            self.find_unseen_service = rospy.Service('find_unseen_service', FindUnknown, self.find_unseen_callback)
+            self.find_unseen_service = rospy.Service('find_unseen_service', FindUnseen, self.find_unseen_callback)
             self.find_path_to_goal_service = rospy.Service('find_path_to_goal', FindPathToGoal, self.find_path_to_goal)
 
             #keep that shit running until shutdown
@@ -163,55 +163,55 @@ class PathPlanningWayfront:
             tempValue = 147456
 
             # check left top
-            if(map[currentY - 1][currentX - 1] < tempValue) and map[currentY - 1][currentX - 1] != 1:
+            if(map[currentY - 1][currentX - 1] < tempValue) and map[currentY - 1][currentX - 1] != 1 and map[currentY - 1][currentX - 1] != -1:
                   tempX = currentX - 1
                   tempY = currentY - 1
                   tempValue = map[currentY - 1][currentX - 1]
 
             # check top
-            if(map[currentY - 1][currentX] < tempValue) and map[currentY - 1][currentX] != 1:
+            if(map[currentY - 1][currentX] < tempValue) and map[currentY - 1][currentX] != 1 and map[currentY - 1][currentX] != -1:
                   tempX = currentX
                   tempY = currentY - 1
                   tempValue = map[currentY - 1][currentX]
 
             # check top right
-            if(map[currentY - 1][currentX + 1] < tempValue) and map[currentY - 1][currentX + 1] != 1:
+            if(map[currentY - 1][currentX + 1] < tempValue) and map[currentY - 1][currentX + 1] != 1 and map[currentY - 1][currentX + 1] != -1:
                   tempX = currentX + 1
                   tempY = currentY - 1
                   tempValue = map[currentY - 1][currentX + 1]
 
             # check right
-            if (map[currentY][currentX + 1] < tempValue) and map[currentY][currentX + 1] != 1:
+            if (map[currentY][currentX + 1] < tempValue) and map[currentY][currentX + 1] != 1 and map[currentY][currentX + 1] != -1:
                   tempX = currentX + 1
                   tempY = currentY
                   tempValue = map[currentY][currentX + 1]
 
             # check bottom right
-            if (map[currentY + 1][currentX + 1] < tempValue) and map[currentY + 1][currentX + 1] != 1:
+            if (map[currentY + 1][currentX + 1] < tempValue) and map[currentY + 1][currentX + 1] != 1 and map[currentY + 1][currentX + 1] != -1:
                   tempX = currentX + 1
                   tempY = currentY + 1
                   tempValue = map[currentY + 1][currentX + 1]
 
             # check bottom
-            if (map[currentY + 1][currentX] < tempValue) and map[currentY + 1][currentX] != 1:
+            if (map[currentY + 1][currentX] < tempValue) and map[currentY + 1][currentX] != 1 and map[currentY + 1][currentX] != -1:
                   tempX = currentX
                   tempY = currentY + 1
                   tempValue = map[currentY + 1][currentX]
 
             # check bottom left
-            if (map[currentY + 1][currentX - 1] < tempValue) and map[currentY + 1][currentX - 1] != 1:
+            if (map[currentY + 1][currentX - 1] < tempValue) and map[currentY + 1][currentX - 1] != 1 and map[currentY + 1][currentX - 1] != -1:
                   tempX = currentX - 1
                   tempY = currentY + 1
                   tempValue = map[currentY + 1][currentX - 1]
 
             # check left
-            if (map[currentY][currentX - 1] < tempValue) and map[currentY][currentX - 1] != 1:
+            if (map[currentY][currentX - 1] < tempValue) and map[currentY][currentX - 1] != 1 and map[currentY][currentX - 1] != -1:
                   tempX = currentX - 1
                   tempY = currentY
                   tempValue = map[currentY][currentX - 1]
 
             # check bottom left
-            if (map[currentY - 1][currentX - 1] < tempValue) and map[currentY - 1][currentX - 1] != 1:
+            if (map[currentY - 1][currentX - 1] < tempValue) and map[currentY - 1][currentX - 1] != 1 and map[currentY - 1][currentX - 1] != -1:
                   tempX = currentX - 1
                   tempY = currentY - 1
                   tempValue = map[currentY - 1][currentX - 1]
@@ -439,18 +439,19 @@ class PathPlanningWayfront:
             map = self.map + self.map_seen
             # At this point Wall = 110, Free Space = 10, Unknown = -2
             map[map == 110] = 100
+            map[map == 99] = 100
             map[map == 10] = 0
             map[map == -2] = -1
             # At this point Wall = 100, Free Space = 0, Unknown = -1
-            waypoints, allpoints = self._find_unknown(self, sv_data, map)
-            return FindUnknownResponse(waypoints, allpoints)
+            waypoints, allpoints = self._find_unknown(sv_data, map)
+            return FindUnseenResponse(waypoints, allpoints)
 
 
       def find_unknown_callback(self, sv_data):
             """
             Search for space that was not discovered by the Lidar yet
             """
-            waypoints, allpoints = self._find_unknown(self, sv_data, self.map)
+            waypoints, allpoints = self._find_unknown(sv_data, self.map)
             return FindUnknownResponse(waypoints, allpoints)
 
 
