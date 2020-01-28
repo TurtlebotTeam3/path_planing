@@ -34,9 +34,11 @@ class PathPlanningWayfront:
 
             self.mapSub = rospy.Subscriber('/map', OccupancyGrid, self._map_callback)
             self.mapSeenSub = rospy.Subscriber('/camera_seen_map', OccupancyGrid, self._map_seen_callback)
-            self.find_unkown_service = rospy.Service('find_unkown_service', FindUnknown, self.find_unknown_callback)
-            self.find_unseen_service = rospy.Service('find_unseen_service', FindUnseen, self.find_unseen_callback)
-            self.find_path_to_goal_service = rospy.Service('find_path_to_goal', FindPathToGoal, self.find_path_to_goal)
+
+            self.find_unkown_service = rospy.Service('find_unkown_service', FindUnknown, self.handle_service_find_unknown)
+            self.find_unseen_service = rospy.Service('find_unseen_service', FindUnseen, self.handle_service_find_unseen)
+            self.find_path_to_goal_service = rospy.Service('find_path_to_goal_service', FindPathToGoal, self.handle_service_find_path_to_goal)
+            self.find_shortest_path_service = rospy.Service('find_shortest_path_service', FindShortestPath, self.handle_service_find_shortest_path)
 
             #keep that shit running until shutdown
             print('--- ready ---')
@@ -394,7 +396,56 @@ class PathPlanningWayfront:
       
             return msg_pointlist
 
-      def find_path_to_goal(self, sv_data):
+      def handle_service_find_shortest_path(self, data):
+            """
+            Handels the request to the service find shortest path
+            """
+            goals = data.FullPath
+            blowUpCellNum = sv_data.blowUpCellNum
+            xStart = sv_data.xStart
+            yStart = sv_data.yStart
+            radius = sv_data.radius
+         
+            if self.received_map == True:
+                  print "--> Start find_unknown"
+                  if blowUpCellNum > 0:
+                        map = self._blow_up_wall(cp.deepcopy(map_in), blowUpCellNum, xStart, yStart, radius)
+                  else:
+                        map = cp.deepcopy(map_in)
+                  # Walls = 100 | Unknown = -1 | Free Space = 0
+                  # Walls need to be set to 1 to make algorithm work
+                  map[map == 100] = self._value_wall
+                  map[yStart][xStart] = self._value_start
+
+                  np.savetxt("map.csv", map, delimiter=",", fmt='%1.3f')
+                  
+                  # set the goals
+                  for goal in goals:
+                       map[goal.y][goal.x] = self._value_goal
+
+                  np.savetxt("map_goals.csv", map, delimiter=",", fmt='%1.3f')
+                  map, _ = self._label_cells(map, goals)
+                  np.savetxt("map_labeled.csv", map, delimiter=",", fmt='%1.3f')
+
+                  map, waypoints, allpoints = self._find_path(map, xStart, yStart, radius)
+                  if waypoints == None and allpoints == None:
+                        print "ERROR --> No path found"
+                        return None, None
+                        #return FindUnknownResponse(None, None)
+                  else:
+                        print "--> Success find_unknown"
+                        allpoints_r = self._create_msg(allpoints)
+                        waypoints_r = self._create_msg(waypoints)
+                        #return FindUnknownResponse(waypoints_r, allpoints_r)
+                        return waypoints_r, allpoints_r
+            else:
+                  print "ERROR --> No map loaded"
+                  #return FindUnknownResponse(None, None)
+                  return None, None
+
+
+
+      def handle_service_find_path_to_goal(self, sv_data):
             """
             """
             blowUpCellNum = sv_data.blowUpCellNum
@@ -432,7 +483,7 @@ class PathPlanningWayfront:
                   return FindPathToGoalResponse(None, None)
 
       
-      def find_unseen_callback(self, sv_data):
+      def handle_service_find_unseen(self, sv_data):
             """
             Search for space that was not discovered by the camera yet
             """
@@ -447,7 +498,7 @@ class PathPlanningWayfront:
             return FindUnseenResponse(waypoints, allpoints)
 
 
-      def find_unknown_callback(self, sv_data):
+      def handle_service_find_unknown(self, sv_data):
             """
             Search for space that was not discovered by the Lidar yet
             """

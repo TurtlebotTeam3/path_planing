@@ -60,6 +60,7 @@ add_service_files(
    FindPathToGoal.srv 
    FindUnknown.srv
    FindUnseen.srv
+   FindShortestPath.srv
 )
 
 ## Generate actions in the 'action' folder
