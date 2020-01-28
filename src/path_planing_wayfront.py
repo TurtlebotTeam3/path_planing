@@ -15,6 +15,7 @@ from directionEnum import Direction
 from path_planing.srv import FindUnknown, FindUnknownResponse
 from path_planing.srv import FindUnseen, FindUnseenResponse
 from path_planing.srv import FindPathToGoal, FindPathToGoalResponse
+from path_planing.srv import FindShortestPath, FindPathToGoalResponse
 
 class PathPlanningWayfront:
 
