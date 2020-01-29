@@ -401,18 +401,18 @@ class PathPlanningWayfront:
             """
             Handels the request to the service find shortest path
             """
-            goals = data.FullPath
-            blowUpCellNum = sv_data.blowUpCellNum
-            xStart = sv_data.xStart
-            yStart = sv_data.yStart
-            radius = sv_data.radius
+            goals = data.goals.fullpath
+            blowUpCellNum = data.blowUpCellNum
+            xStart = data.xStart
+            yStart = data.yStart
+            radius = data.radius
          
             if self.received_map == True:
                   print "--> Start find_unknown"
                   if blowUpCellNum > 0:
-                        map = self._blow_up_wall(cp.deepcopy(map_in), blowUpCellNum, xStart, yStart, radius)
+                        map = self._blow_up_wall(cp.deepcopy(self.map), blowUpCellNum, xStart, yStart, radius)
                   else:
-                        map = cp.deepcopy(map_in)
+                        map = cp.deepcopy(self.map)
                   # Walls = 100 | Unknown = -1 | Free Space = 0
                   # Walls need to be set to 1 to make algorithm work
                   map[map == 100] = self._value_wall
@@ -420,12 +420,15 @@ class PathPlanningWayfront:
 
                   np.savetxt("map.csv", map, delimiter=",", fmt='%1.3f')
                   
+
                   # set the goals
+                  goals_extracted = []
                   for goal in goals:
-                       map[goal.y][goal.x] = self._value_goal
+                        goals_extracted.append((goal.path_x, goal.path_y))
+                        map[goal.path_y][goal.path_x] = self._value_goal
 
                   np.savetxt("map_goals.csv", map, delimiter=",", fmt='%1.3f')
-                  map, _ = self._label_cells(map, goals)
+                  map, _ = self._label_cells(map, goals_extracted)
                   np.savetxt("map_labeled.csv", map, delimiter=",", fmt='%1.3f')
 
                   map, waypoints, allpoints = self._find_path(map, xStart, yStart, radius)
