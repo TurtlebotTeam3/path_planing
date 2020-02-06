@@ -28,8 +28,8 @@ class PathPlanningWayfront:
             self.map = [[]]
             self.map_seen = [[]]
 
-            self.mapSub = rospy.Subscriber('/map', OccupancyGrid, self._map_callback)
-            self.mapSeenSub = rospy.Subscriber('/camera_seen_map', OccupancyGrid, self._map_seen_callback)
+            self.mapSub = rospy.Subscriber('map', OccupancyGrid, self._map_callback)
+            self.mapSeenSub = rospy.Subscriber('camera_seen_map', OccupancyGrid, self._map_seen_callback)
 
             self.find_unkown_service = rospy.Service('find_unkown_service', FindUnknown, self.handle_service_find_unknown)
             self.find_unseen_service = rospy.Service('find_unseen_service', FindUnseen, self.handle_service_find_unseen)
