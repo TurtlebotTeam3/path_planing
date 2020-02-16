@@ -355,36 +355,36 @@ class PathPlanningWayfront:
       
             return tmp_map
 
-      def _free_up_position_from_wall(self, freeup_x, freeup_y, robot_radius, map, tmp_map):
+      def _free_up_position_from_wall(self, freeup_x, freeup_y, robot_radius, reference_map, map):
             # Free up robot top if no wall in org map
-            if freeup_y - robot_radius >= 0 and  map[freeup_y - robot_radius, freeup_x] != 100:
+            if freeup_y - robot_radius >= 0 and  reference_map[freeup_y - robot_radius, freeup_x] != 100:
                   for y in range(freeup_y - robot_radius, freeup_y + 1):
                         for x in range(freeup_x - robot_radius, freeup_x + robot_radius + 1):
-                              if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
-                                    tmp_map[y, x] = map[y, x]
+                              if y >= 0 and x >= 0 and y < len(map) and x < len(map[0]) and map[y, x] != reference_map[y, x]:
+                                    map[y, x] = reference_map[y, x]
 
             # Free up robot right if no wall in org map
-            if freeup_x + robot_radius <  len(tmp_map[0]) and map[freeup_y, freeup_x + robot_radius] != 100:
+            if freeup_x + robot_radius <  len(map[0]) and reference_map[freeup_y, freeup_x + robot_radius] != 100:
                   for y in range(freeup_y - robot_radius, freeup_y + 1 + robot_radius):
                         for x in range(freeup_x, freeup_x + robot_radius + 1):
-                              if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
-                                    tmp_map[y, x] = map[y, x]
+                              if y >= 0 and x >= 0 and y < len(map) and x < len(map[0]) and map[y, x] != reference_map[y, x]:
+                                    map[y, x] = reference_map[y, x]
 
             # Free up robot bottom if no wall in org map
-            if freeup_y + robot_radius < len(tmp_map) and  map[freeup_y + robot_radius, freeup_x] != 100:
+            if freeup_y + robot_radius < len(map) and  reference_map[freeup_y + robot_radius, freeup_x] != 100:
                   for y in range(freeup_y - robot_radius, freeup_y + 1):
                         for x in range(freeup_x - robot_radius, freeup_x + robot_radius + 1):
-                              if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
-                                    tmp_map[y, x] = map[y, x]
+                              if y >= 0 and x >= 0 and y < len(map) and x < len(map[0]) and map[y, x] != reference_map[y, x]:
+                                    map[y, x] = reference_map[y, x]
 
             # Free up robot left if no wall in org map
-            if freeup_x - robot_radius >= 0 and map[freeup_y, freeup_x - robot_radius] != 100:
+            if freeup_x - robot_radius >= 0 and reference_map[freeup_y, freeup_x - robot_radius] != 100:
                   for y in range(freeup_y - robot_radius, freeup_y + 1 + robot_radius):
                         for x in range(freeup_x - robot_radius, freeup_x + 1):
-                              if y >= 0 and x >= 0 and y < len(tmp_map) and x < len(tmp_map[0]) and tmp_map[y, x] != map[y, x]:
-                                    tmp_map[y, x] = map[y, x]
+                              if y >= 0 and x >= 0 and y < len(map) and x < len(map[0]) and map[y, x] != reference_map[y, x]:
+                                    map[y, x] = reference_map[y, x]
             
-            return tmp_map
+            return map
 
       def _create_msg(self, points):
             msg_pointlist = FullPath()
@@ -410,8 +410,8 @@ class PathPlanningWayfront:
             if self.received_map == True:
                   print "--> Start find_unknown"
                   if blowUpCellNum > 0:
-                        map = self._blow_up_wall(cp.deepcopy(self.map), blowUpCellNum, xStart, yStart, radius)
-                        original_map = cp.deepcopy(map)
+                        original_map = cp.deepcopy(self.map)
+                        map = self._blow_up_wall(original_map, blowUpCellNum, xStart, yStart, radius)
                         for goal in goals:
                               map = self._free_up_position_from_wall(goal.path_x, goal.path_y, radius, original_map, map)
                   else:
@@ -421,7 +421,7 @@ class PathPlanningWayfront:
                   map[map == 100] = self._value_wall
                   map[yStart][xStart] = self._value_start
 
-                  np.savetxt("map.csv", map, delimiter=",", fmt='%1.3f')
+                  np.savetxt("map.csv", self.map, delimiter=",", fmt='%1.3f')
                   
 
                   # set the goals
