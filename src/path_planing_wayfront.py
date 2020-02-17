@@ -37,11 +37,11 @@ class PathPlanningWayfront:
             self.find_shortest_path_service = rospy.Service('find_shortest_path_service', FindShortestPath, self.handle_service_find_shortest_path)
 
             #keep that shit running until shutdown
-            print('--- ready ---')
+            rospy.loginfo('--- ready ---')
             rospy.spin()
 
       def _shutdown(self):
-            print "shutdown"
+            rospy.loginfo('shutdown')
 
       def _map_callback(self, data):
             self.map = np.reshape(data.data, (data.info.height, data.info.width))
@@ -408,7 +408,7 @@ class PathPlanningWayfront:
             radius = data.radius
          
             if self.received_map == True:
-                  print "--> Start find_unknown"
+                  rospy.loginfo('Start find_unknown')
                   if blowUpCellNum > 0:
                         original_map = cp.deepcopy(self.map)
                         map = self._blow_up_wall(original_map, blowUpCellNum, xStart, yStart, radius)
@@ -436,17 +436,17 @@ class PathPlanningWayfront:
 
                   map, waypoints, allpoints = self._find_path(map, xStart, yStart, radius)
                   if waypoints == None and allpoints == None:
-                        print "ERROR --> No path found"
+                        rospy.loginfo("ERROR --> No path found")
                         return None, None
                         #return FindUnknownResponse(None, None)
                   else:
-                        print "--> Success find_unknown"
+                        rospy.loginfo("Success find_unknown")
                         allpoints_r = self._create_msg(allpoints)
                         waypoints_r = self._create_msg(waypoints)
                         #return FindUnknownResponse(waypoints_r, allpoints_r)
                         return waypoints_r, allpoints_r
             else:
-                  print "ERROR --> No map loaded"
+                  rospy.loginfo("ERROR --> No map loaded")
                   #return FindUnknownResponse(None, None)
                   return None, None
 
@@ -462,7 +462,7 @@ class PathPlanningWayfront:
             yStart = sv_data.yStart
             radius = sv_data.radius
             if self.received_map == True:
-                  print "--> Start find_path_to_goal"
+                  rospy.loginfo("Start find_path_to_goal")
                   if blowUpCellNum > 0:
                         map = self._blow_up_wall(cp.deepcopy(self.map), blowUpCellNum, xStart, yStart, radius)
                   else:
@@ -477,16 +477,16 @@ class PathPlanningWayfront:
                   map, waypoints, allpoints = self._find_path(map, xStart, yStart, radius)
 
                   if waypoints == None and allpoints == None:
-                        print "ERROR --> No path found"
+                        rospy.loginfo("ERROR --> No path found")
                         return FindPathToGoalResponse(None, None)
                   else:
-                        print "--> Success find_path_to_goal"
+                        rospy.loginfo("Success find_path_to_goal")
                         allpoints_r = self._create_msg(allpoints)
                         waypoints_r = self._create_msg(waypoints)
 
                         return FindPathToGoalResponse(waypoints_r, allpoints_r)
             else:
-                  print "ERROR --> No map loaded"
+                  rospy.loginfo("ERROR --> No map loaded")
                   return FindPathToGoalResponse(None, None)
 
       
@@ -528,7 +528,7 @@ class PathPlanningWayfront:
             radius = sv_data.radius
          
             if self.received_map == True:
-                  print "--> Start find_unknown"
+                  rospy.loginfo("--> Start find_unknown")
                   if blowUpCellNum > 0:
                         map = self._blow_up_wall(cp.deepcopy(map_in), blowUpCellNum, xStart, yStart, radius)
                   else:
@@ -546,17 +546,17 @@ class PathPlanningWayfront:
 
                   map, waypoints, allpoints = self._find_path(map, xStart, yStart, radius)
                   if waypoints == None and allpoints == None:
-                        print "ERROR --> No path found"
+                        rospy.loginfo("ERROR --> No path found")
                         return None, None
                         #return FindUnknownResponse(None, None)
                   else:
-                        print "--> Success find_unknown"
+                        rospy.loginfo("--> Success find_unknown")
                         allpoints_r = self._create_msg(allpoints)
                         waypoints_r = self._create_msg(waypoints)
                         #return FindUnknownResponse(waypoints_r, allpoints_r)
                         return waypoints_r, allpoints_r
             else:
-                  print "ERROR --> No map loaded"
+                  rospy.loginfo("ERROR --> No map loaded")
                   #return FindUnknownResponse(None, None)
                   return None, None
 
