@@ -6,8 +6,7 @@ import copy as cp
 
 from directionEnum import Direction
 
-from nav_msgs.msg._OccupancyGrid import OccupancyGrid
-
+from nav_msgs.msg import OccupancyGrid
 from path_planing.msg import PathPoint
 from path_planing.msg import FullPath
 from path_planing.srv import FindUnknown, FindUnknownResponse, FindUnseen, FindUnseenResponse, FindPathToGoal, FindPathToGoalResponse, FindShortestPath, FindPathToGoalResponse
@@ -28,9 +27,11 @@ class PathPlanningWayfront:
             self.map = [[]]
             self.map_seen = [[]]
 
+            # --- Subscriber ---
             self.mapSub = rospy.Subscriber('map', OccupancyGrid, self._map_callback)
             self.mapSeenSub = rospy.Subscriber('camera_seen_map', OccupancyGrid, self._map_seen_callback)
 
+            # --- Services ---
             self.find_unkown_service = rospy.Service('find_unkown_service', FindUnknown, self.handle_service_find_unknown)
             self.find_unseen_service = rospy.Service('find_unseen_service', FindUnseen, self.handle_service_find_unseen)
             self.find_path_to_goal_service = rospy.Service('find_path_to_goal_service', FindPathToGoal, self.handle_service_find_path_to_goal)
@@ -44,15 +45,22 @@ class PathPlanningWayfront:
             rospy.loginfo('shutdown')
 
       def _map_callback(self, data):
+            """
+            Handle the map data.
+            """
             self.map = np.reshape(data.data, (data.info.height, data.info.width))
             self.received_map = True
 
       def _map_seen_callback(self, data):
+            """
+            Handle the camper map data.
+            """
             self.map_seen = np.reshape(data.data, (data.info.height, data.info.width))
             self.received_map_seen = True
 
       def _set_start_and_goal(self, map, xGoal, yGoal, xStart, yStart):
             """
+            Set start position and goal in the map.
             """
             map[yGoal][xGoal] = self._value_goal
             map[yStart][xStart] = self._value_start
@@ -103,6 +111,7 @@ class PathPlanningWayfront:
 
       def _find_path(self, map, xStart, yStart, radius):
             """
+            Find the shortest path to the goal.
             """
             currentX = xStart
             currentY = yStart
@@ -125,16 +134,15 @@ class PathPlanningWayfront:
                         currentX = nextLowestAdjeacent[0]
                         currentY = nextLowestAdjeacent[1]
                         direction =nextLowestAdjeacent[3]
-                        # currentValue = currentValue - 1
-                        # map[currentY][currentX] = currentValue
-
-                        #direction_changed, direction = self._detect_direction_change(direction, currentX, currentY, lastX, lastY)
+                        
+                        # at every direction change add the previous point to the waypoint list.
                         if direction != lastDirection:
                               lastDirection = direction
                               waypoints.append((lastX, lastY))
                         allpoints.append((currentX, currentY))
 
                   elif nextLowestAdjeacent[2] == self._value_goal:
+                        # reached the goal, stop now
                         waypoints.append((currentX, currentY))
                         run = False
             return map, waypoints, allpoints
@@ -155,6 +163,7 @@ class PathPlanningWayfront:
 
       def _get_first_adjeacent(self, map, currentX, currentY):
             """
+            Find lowest next from starting position.
             """
             tempX = 0
             tempY = 0
@@ -220,6 +229,7 @@ class PathPlanningWayfront:
 
       def _get_next_lowest_adjeacent(self, map, currentX, currentY):
             """
+            Find the next lowest cell.
             """
             currentValue = 0
 
@@ -341,6 +351,9 @@ class PathPlanningWayfront:
             return map, list_unknown_spots
 
       def _blow_up_wall(self, map, blowUpCellNum, robot_x, robot_y, robot_radius):
+            """
+            Blow up the wall to eliminate gaps in the wall and to bring path away from the wall.
+            """
             #blow up walls
             tmp_map = cp.deepcopy(map)
             for row in range(0, len(tmp_map)):
@@ -348,7 +361,6 @@ class PathPlanningWayfront:
                         # check outside boundaries and if it is a wall
                         if map[row,col] == 100 and row >= blowUpCellNum and col >= blowUpCellNum and row <= len(tmp_map) - blowUpCellNum and col <= len(tmp_map[0]) - blowUpCellNum:
                               # only blow up if not robot position
-                              # if (robot_y < (row - blowUpCellNum) or robot_y > (row + blowUpCellNum)) and (robot_x < (col - blowUpCellNum) or robot_x > (col + blowUpCellNum)): 
                               tmp_map[row - blowUpCellNum : row + 1 + blowUpCellNum, col - blowUpCellNum : col + 1 + blowUpCellNum] = 100
 
             tmp_map = self._free_up_position_from_wall(robot_x, robot_y, robot_radius, map, tmp_map)
@@ -356,6 +368,9 @@ class PathPlanningWayfront:
             return tmp_map
 
       def _free_up_position_from_wall(self, freeup_x, freeup_y, robot_radius, reference_map, map):
+            """
+            Because of blowing up the wall the robot might get stuck in the wall therefore free up the robot position.
+            """
             # Free up robot top if no wall in org map
             if freeup_y - robot_radius >= 0 and  reference_map[freeup_y - robot_radius, freeup_x] != 100:
                   for y in range(freeup_y - robot_radius, freeup_y + 1):
@@ -387,6 +402,9 @@ class PathPlanningWayfront:
             return map
 
       def _create_msg(self, points):
+            """
+            Store the points in the correct format to transmit it.
+            """
             msg_pointlist = FullPath()
 
             for point in points:
@@ -423,7 +441,6 @@ class PathPlanningWayfront:
 
                   np.savetxt("map.csv", self.map, delimiter=",", fmt='%1.3f')
                   
-
                   # set the goals
                   goals_extracted = []
                   for goal in goals:
@@ -438,22 +455,20 @@ class PathPlanningWayfront:
                   if waypoints == None and allpoints == None:
                         rospy.loginfo("ERROR --> No path found")
                         return None, None
-                        #return FindUnknownResponse(None, None)
                   else:
                         rospy.loginfo("Success find_unknown")
                         allpoints_r = self._create_msg(allpoints)
                         waypoints_r = self._create_msg(waypoints)
-                        #return FindUnknownResponse(waypoints_r, allpoints_r)
                         return waypoints_r, allpoints_r
             else:
                   rospy.loginfo("ERROR --> No map loaded")
-                  #return FindUnknownResponse(None, None)
                   return None, None
 
 
 
       def handle_service_find_path_to_goal(self, sv_data):
             """
+            Handles the request for finding the path to a specific goal.
             """
             blowUpCellNum = sv_data.blowUpCellNum
             xGoal = sv_data.xGoal
@@ -548,16 +563,13 @@ class PathPlanningWayfront:
                   if waypoints == None and allpoints == None:
                         rospy.loginfo("ERROR --> No path found")
                         return None, None
-                        #return FindUnknownResponse(None, None)
                   else:
                         rospy.loginfo("--> Success find_unknown")
                         allpoints_r = self._create_msg(allpoints)
                         waypoints_r = self._create_msg(waypoints)
-                        #return FindUnknownResponse(waypoints_r, allpoints_r)
                         return waypoints_r, allpoints_r
             else:
                   rospy.loginfo("ERROR --> No map loaded")
-                  #return FindUnknownResponse(None, None)
                   return None, None
 
 if __name__ == '__main__':
